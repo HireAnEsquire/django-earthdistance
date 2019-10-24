@@ -4,3 +4,4 @@
 build/
 dist/
 django_earthdistance.egg-info/
+.idea/

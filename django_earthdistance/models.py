@@ -1,5 +1,5 @@
 # coding=utf-8
-
+from django.core.exceptions import FieldError
 from django.db import models
 from django.utils import six
 
@@ -25,15 +25,18 @@ class LlToEarth(models.Expression):
         final_points = []
         for i, p in enumerate(self.params):
             try:
-                float(p)
-            except:
-                _, source, _, join_list, last = query.setup_joins(
-                        six.text_type(p).split('__'), query.model._meta, query.get_initial_alias())[:5]
-                target, alias, _ = query.trim_joins(source, join_list, last)
-                final_points.append("%s.%s" % (alias, target[0].get_attname_column()[1]))
-            else:
-                final_points.append(six.text_type(p))
-            c.params = final_points
+                try:
+                    float(p)
+                except:
+                    _, source, _, join_list, last = query.setup_joins(
+                            six.text_type(p).split('__'), query.model._meta, query.get_initial_alias())[:5]
+                    target, alias, _ = query.trim_joins(source, join_list, last)
+                    final_points.append("%s.%s" % (alias, target[0].get_attname_column()[1]))
+                else:
+                    final_points.append(six.text_type(p))
+                c.params = final_points
+            except FieldError:
+                pass
         return c
 
     def as_sql(self, compiler, connection):
